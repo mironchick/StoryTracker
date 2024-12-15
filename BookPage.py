@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import (
-    QWidget, QLabel, QVBoxLayout, QLineEdit, QPushButton, QListWidget, QHBoxLayout
+    QWidget, QLabel, QVBoxLayout, QLineEdit, QPushButton, QListWidget, QHBoxLayout, QListWidgetItem
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QColor
 
 
 class BookPage(QWidget):
@@ -59,7 +59,8 @@ class BookPage(QWidget):
         add_button.clicked.connect(self.add_book)
 
         # Подсказка
-        hint_label = QLabel("Click the check mark to mark what you have read or the cross to remove the book from the list")
+        hint_label = QLabel(
+            "Click the check mark to mark what you have read or the cross to remove the book from the list")
         hint_label.setWordWrap(True)
         hint_label.setAlignment(Qt.AlignCenter)
         hint_label.setFont(QFont("Lato", 24))
@@ -87,11 +88,19 @@ class BookPage(QWidget):
         right_layout = QVBoxLayout()
         right_layout.setContentsMargins(15, 30, 30, 30)
 
+        # Заголовок для списка книг
+        list_label = QLabel("List:")
+        list_label.setFont(QFont("Lato", 24))
+        list_label.setStyleSheet("color: #716A5C;")
+
+        # Список книг
         self.book_list = QListWidget()
         self.book_list.setStyleSheet(
-            "background-color: #FFFFFF; color: #07020D; border: none; padding: 10px; font-size: 18px;"
+            "background-color: #F1E9DB; color: #07020D; border: none; padding: 10px; font-size: 18px;"
         )
 
+        # Добавление в макет
+        right_layout.addWidget(list_label)
         right_layout.addWidget(self.book_list)
         right_layout.setAlignment(Qt.AlignVCenter)
 
@@ -106,8 +115,20 @@ class BookPage(QWidget):
     def add_book(self):
         book_name = self.input_field.text().strip()
         if book_name:
-            self.book_list.addItem(book_name)
-            self.input_field.clear()
+            try:
+                # Создание элемента списка
+                item = QListWidgetItem(book_name)
+                item.setFont(QFont("Lato", 18))  # Устанавливаем шрифт размером 18
+                item.setForeground(QColor("#716A5C"))  # Устанавливаем цвет текста
+
+                # Добавление элемента в список
+                self.book_list.addItem(item)
+
+                # Очищаем поле ввода после добавления
+                self.input_field.clear()
+
+            except Exception as e:
+                print(f"Error while adding book: {e}")
 
     def on_title_click(self, event):
         """Переход на главную страницу."""
