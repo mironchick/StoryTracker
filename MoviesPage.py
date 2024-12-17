@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor
 
 
-class BookPage(QWidget):
+class MoviePage(QWidget):
     def __init__(self, switch_to_main_page):
         super().__init__()
 
@@ -27,20 +27,20 @@ class BookPage(QWidget):
         """)
         self.title_label.mousePressEvent = self.on_title_click  # Привязка клика
 
-        # Текст "Want to read:"
-        want_to_read_label = QLabel("Want to read:")
-        want_to_read_label.setAlignment(Qt.AlignCenter)
-        want_to_read_label.setFont(QFont("Lato", 20))
-        want_to_read_label.setStyleSheet("color: #716A5C;")
+        # Текст "Want to watch:"
+        want_to_watch_label = QLabel("Want to watch:")
+        want_to_watch_label.setAlignment(Qt.AlignCenter)
+        want_to_watch_label.setFont(QFont("Lato", 20))
+        want_to_watch_label.setStyleSheet("color: #716A5C;")
 
-        # Поле ввода для добавления книг
+        # Поле ввода для добавления фильмов
         self.input_field = QLineEdit()
         self.input_field.setFixedHeight(70)
         self.input_field.setStyleSheet(
             "background-color: #A39B8B; color: #07020D; border-radius: 25px; padding-left: 15px; font-size: 18px;"
         )
 
-        # Кнопка добавления книги
+        # Кнопка добавления фильма
         add_button = QPushButton("Add")
         add_button.setFixedSize(476, 81)
         add_button.setFont(QFont("Lato", 28, QFont.Bold))
@@ -56,11 +56,11 @@ class BookPage(QWidget):
                 background-color: #5D86DE;
             }
         """)
-        add_button.clicked.connect(self.add_book)
+        add_button.clicked.connect(self.add_movie)
 
         # Подсказка
         hint_label = QLabel(
-            "Click the check mark to mark what you have read or the cross to remove the book from the list")
+            "Click the check mark to mark what you have watched or the cross to remove the movie from the list")
         hint_label.setWordWrap(True)
         hint_label.setAlignment(Qt.AlignCenter)
         hint_label.setFont(QFont("Lato", 24))
@@ -70,7 +70,7 @@ class BookPage(QWidget):
         # Добавление в макет
         left_layout.addWidget(self.title_label)
         left_layout.addSpacing(52)
-        left_layout.addWidget(want_to_read_label)
+        left_layout.addWidget(want_to_watch_label)
         left_layout.addSpacing(42)
         left_layout.addWidget(self.input_field)
         left_layout.addSpacing(48)
@@ -84,24 +84,24 @@ class BookPage(QWidget):
         separator.setFixedWidth(1)
         separator.setStyleSheet("background-color: #E9E4DB;")
 
-        # Правая часть: Список книг
+        # Правая часть: Список фильмов
         right_layout = QVBoxLayout()
         right_layout.setContentsMargins(15, 30, 30, 30)
 
-        # Заголовок для списка книг
+        # Заголовок для списка фильмов
         list_label = QLabel("List:")
         list_label.setFont(QFont("Lato", 24))
         list_label.setStyleSheet("color: #716A5C;")
 
-        # Список книг
-        self.book_list = QListWidget()
-        self.book_list.setStyleSheet(
+        # Список фильмов
+        self.movie_list = QListWidget()
+        self.movie_list.setStyleSheet(
             "background-color: #F1E9DB; color: #07020D; border: none; padding: 10px; font-size: 18px;"
         )
 
         # Добавление в макет
         right_layout.addWidget(list_label)
-        right_layout.addWidget(self.book_list)
+        right_layout.addWidget(self.movie_list)
         right_layout.setAlignment(Qt.AlignVCenter)
 
         # Основной макет
@@ -112,35 +112,35 @@ class BookPage(QWidget):
 
         self.setLayout(main_layout)
 
-        self.book_list.itemClicked.connect(self.toggle_book_status)
+        self.movie_list.itemClicked.connect(self.toggle_movie_status)
 
-    def add_book(self):
-        book_name = self.input_field.text().strip()
-        if book_name:
+    def add_movie(self):
+        movie_name = self.input_field.text().strip()
+        if movie_name:
             try:
                 # Создание элемента списка
-                item = QListWidgetItem(book_name)
+                item = QListWidgetItem(movie_name)
                 item.setFont(QFont("Lato", 18))  # Устанавливаем шрифт размером 18
                 item.setForeground(QColor("#716A5C"))  # Устанавливаем цвет текста
 
                 # Добавление элемента в список
-                self.book_list.addItem(item)
+                self.movie_list.addItem(item)
 
                 # Очищаем поле ввода после добавления
                 self.input_field.clear()
 
             except Exception as e:
-                print(f"Error while adding book: {e}")
+                print(f"Error while adding movie: {e}")
 
     def on_title_click(self, event):
         """Переход на главную страницу."""
         self.switch_to_main_page()
 
-    def toggle_book_status(self, item: QListWidgetItem):
-        """Переключить статус книги (прочитано/не прочитано)."""
-        if item.data(Qt.UserRole) is None:  # Если книга не прочитана
+    def toggle_movie_status(self, item: QListWidgetItem):
+        """Переключить статус фильма (просмотрено/не просмотрено)."""
+        if item.data(Qt.UserRole) is None:  # Если фильм не просмотрен
             item.setForeground(QColor("#A39B8B"))  # Меняем цвет текста
-            item.setData(Qt.UserRole, True)  # Устанавливаем статус прочитано
+            item.setData(Qt.UserRole, True)  # Устанавливаем статус просмотрено
             item.setText(f"{item.text()}")
         elif item.data(Qt.UserRole):
             item.setForeground(QColor("#716A5C"))  # Меняем цвет текста
@@ -150,8 +150,7 @@ class BookPage(QWidget):
     def keyPressEvent(self, event):
         """Удаляет выбранный элемент при нажатии клавиши Delete."""
         if event.key() == Qt.Key_Delete:  # Проверяем, была ли нажата клавиша Delete
-            current_item = self.book_list.currentItem()
+            current_item = self.movie_list.currentItem()
             if current_item:
-                row = self.book_list.row(current_item)
-                self.book_list.takeItem(row)
-#Furry was there
+                row = self.movie_list.row(current_item)
+                self.movie_list.takeItem(row)

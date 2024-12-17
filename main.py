@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from BookPage import BookPage
+from MoviesPage import MoviePage  # Импортируем страницу фильмов
 
 
 class MainWindow(QWidget):
@@ -39,7 +40,7 @@ class MainWindow(QWidget):
         welcome_label.setWordWrap(True)
         welcome_label.setMaximumSize(830, 150)
 
-        # Кнопки
+        # Кнопка "See my books"
         see_books_button = QPushButton("See my books")
         see_books_button.setFixedSize(752, 100)
         see_books_button.setFont(QFont("Lato", 28, QFont.Bold))
@@ -57,6 +58,7 @@ class MainWindow(QWidget):
         """)
         see_books_button.clicked.connect(self.show_books_page)
 
+        # Кнопка "See my movies"
         see_movies_button = QPushButton("See my movies")
         see_movies_button.setFixedSize(752, 100)
         see_movies_button.setFont(QFont("Lato", 28, QFont.Bold))
@@ -72,6 +74,7 @@ class MainWindow(QWidget):
                 background-color: #5D86DE;
             }
         """)
+        see_movies_button.clicked.connect(self.show_movies_page)  # Привязка к функции
 
         # Добавление элементов в макет главной страницы
         main_layout.addWidget(title_label)
@@ -87,8 +90,13 @@ class MainWindow(QWidget):
 
         # Add pages to the stack
         self.stack.addWidget(main_page)
-        self.books_page = BookPage(self.show_main_page)  # Передаем функцию переключения на главную страницу
+
+        # Создание страниц и добавление их в стек
+        self.books_page = BookPage(self.show_main_page)
+        self.movies_page = MoviePage(self.show_main_page)  # Экземпляр MoviePage
+
         self.stack.addWidget(self.books_page)
+        self.stack.addWidget(self.movies_page)
 
         # Main layout
         layout = QVBoxLayout()
@@ -98,6 +106,10 @@ class MainWindow(QWidget):
     def show_books_page(self):
         """Показать страницу с книгами."""
         self.stack.setCurrentWidget(self.books_page)
+
+    def show_movies_page(self):
+        """Показать страницу с фильмами."""
+        self.stack.setCurrentWidget(self.movies_page)
 
     def show_main_page(self):
         """Показать главную страницу."""
@@ -109,5 +121,3 @@ if __name__ == '__main__':
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
-
-# ^_^
