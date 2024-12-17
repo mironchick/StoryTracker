@@ -112,6 +112,8 @@ class BookPage(QWidget):
 
         self.setLayout(main_layout)
 
+        self.book_list.itemClicked.connect(self.toggle_book_status)
+
     def add_book(self):
         book_name = self.input_field.text().strip()
         if book_name:
@@ -133,3 +135,14 @@ class BookPage(QWidget):
     def on_title_click(self, event):
         """Переход на главную страницу."""
         self.switch_to_main_page()
+
+    def toggle_book_status(self, item: QListWidgetItem):
+        """Переключить статус книги (прочитано/не прочитано)."""
+        if item.data(Qt.UserRole) is None:  # Если книга не прочитана
+            item.setForeground(QColor("#A39B8B"))  # Меняем цвет текста
+            item.setData(Qt.UserRole, True)  # Устанавливаем статус прочитано
+            item.setText(f"{item.text()}")
+        elif item.data(Qt.UserRole):
+            item.setForeground(QColor("#716A5C"))  # Меняем цвет текста
+            item.setData(Qt.UserRole, None)
+            item.setText(f"{item.text()}")
