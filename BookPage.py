@@ -146,3 +146,11 @@ class BookPage(QWidget):
             item.setForeground(QColor("#716A5C"))  # Меняем цвет текста
             item.setData(Qt.UserRole, None)
             item.setText(f"{item.text()}")
+
+    def keyPressEvent(self, event):
+        """Удаляет выбранный элемент при нажатии клавиши Delete."""
+        if event.key() == Qt.Key_Delete:  # Проверяем, была ли нажата клавиша Delete
+            current_item = self.book_list.currentItem()
+            if current_item:
+                row = self.book_list.row(current_item)
+                self.book_list.takeItem(row)
