@@ -81,7 +81,7 @@ class MoviePage(QWidget):
 
         # Линия
         separator = QLabel()
-        separator.setFixedWidth(1)
+        separator.setFixedWidth(2)
         separator.setStyleSheet("background-color: #E9E4DB;")
 
         # Правая часть: Список фильмов
