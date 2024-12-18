@@ -3,9 +3,10 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor
+from db_connection import db_cursor  # Импортируем наш модуль для работы с БД
 
 
-class MoviePage(QWidget):
+class MoviesPage(QWidget):
     def __init__(self, switch_to_main_page):
         super().__init__()
 
@@ -18,7 +19,7 @@ class MoviePage(QWidget):
         left_layout.setContentsMargins(30, 30, 15, 30)
 
         # Заголовок страницы
-        self.title_label = QLabel("StoryTracker")
+        self.title_label = QLabel("MoviesTracker")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setFont(QFont("Lato", 48, QFont.Bold))
         self.title_label.setStyleSheet("""
@@ -60,7 +61,7 @@ class MoviePage(QWidget):
 
         # Подсказка
         hint_label = QLabel(
-            "Click the check mark to mark what you have watched or the cross to remove the movie from the list")
+            "Click the movie to mark as watched/unwatched or press Delete to remove it from the list")
         hint_label.setWordWrap(True)
         hint_label.setAlignment(Qt.AlignCenter)
         hint_label.setFont(QFont("Lato", 24))
@@ -114,23 +115,35 @@ class MoviePage(QWidget):
 
         self.movie_list.itemClicked.connect(self.toggle_movie_status)
 
+        # Загружаем фильмы из базы данных при запуске
+        self.load_movies_from_db()
+
     def add_movie(self):
         movie_name = self.input_field.text().strip()
         if movie_name:
             try:
-                # Создание элемента списка
-                item = QListWidgetItem(movie_name)
-                item.setFont(QFont("Lato", 18))  # Устанавливаем шрифт размером 18
-                item.setForeground(QColor("#716A5C"))  # Устанавливаем цвет текста
-
-                # Добавление элемента в список
-                self.movie_list.addItem(item)
-
-                # Очищаем поле ввода после добавления
+                with db_cursor() as cursor:
+                    cursor.execute("INSERT INTO Movies (title, is_watched) VALUES (%s, false);", (movie_name,))
                 self.input_field.clear()
-
+                self.load_movies_from_db()  # Обновляем список после добавления
             except Exception as e:
                 print(f"Error while adding movie: {e}")
+
+    def load_movies_from_db(self):
+        try:
+            self.movie_list.clear()  # Очищаем список
+            with db_cursor() as cursor:
+                cursor.execute("SELECT id, title, is_watched FROM Movies;")
+                movies = cursor.fetchall()
+                for movie in movies:
+                    item = QListWidgetItem(movie['title'])
+                    item.setData(Qt.UserRole, movie['id'])  # Привязываем ID фильма к элементу
+                    item.setData(Qt.UserRole + 1, movie['is_watched'])  # Привязываем статус фильма
+                    item.setFont(QFont("Lato", 18))
+                    item.setForeground(QColor("#A39B8B" if movie['is_watched'] else "#716A5C"))
+                    self.movie_list.addItem(item)
+        except Exception as e:
+            print(f"Error while loading movies: {e}")
 
     def on_title_click(self, event):
         """Переход на главную страницу."""
@@ -138,19 +151,26 @@ class MoviePage(QWidget):
 
     def toggle_movie_status(self, item: QListWidgetItem):
         """Переключить статус фильма (просмотрено/не просмотрено)."""
-        if item.data(Qt.UserRole) is None:  # Если фильм не просмотрен
-            item.setForeground(QColor("#A39B8B"))  # Меняем цвет текста
-            item.setData(Qt.UserRole, True)  # Устанавливаем статус просмотрено
-            item.setText(f"{item.text()}")
-        elif item.data(Qt.UserRole):
-            item.setForeground(QColor("#716A5C"))  # Меняем цвет текста
-            item.setData(Qt.UserRole, None)
-            item.setText(f"{item.text()}")
+        movie_id = item.data(Qt.UserRole)
+        is_watched = item.data(Qt.UserRole + 1)
+        try:
+            new_status = not is_watched
+            with db_cursor() as cursor:
+                cursor.execute("UPDATE Movies SET is_watched = %s WHERE id = %s;", (new_status, movie_id))
+            item.setData(Qt.UserRole + 1, new_status)
+            item.setForeground(QColor("#A39B8B" if new_status else "#716A5C"))
+        except Exception as e:
+            print(f"Error while toggling movie status: {e}")
 
     def keyPressEvent(self, event):
         """Удаляет выбранный элемент при нажатии клавиши Delete."""
-        if event.key() == Qt.Key_Delete:  # Проверяем, была ли нажата клавиша Delete
+        if event.key() == Qt.Key_Delete:
             current_item = self.movie_list.currentItem()
             if current_item:
-                row = self.movie_list.row(current_item)
-                self.movie_list.takeItem(row)
+                movie_id = current_item.data(Qt.UserRole)
+                try:
+                    with db_cursor() as cursor:
+                        cursor.execute("DELETE FROM Movies WHERE id = %s;", (movie_id,))
+                    self.movie_list.takeItem(self.movie_list.row(current_item))
+                except Exception as e:
+                    print(f"Error while deleting movie: {e}")

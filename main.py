@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from BookPage import BookPage
-from MoviesPage import MoviePage  # Импортируем страницу фильмов
+from MoviesPage import MoviesPage  # Импортируем страницу фильмов
 
 
 class MainWindow(QWidget):
@@ -93,7 +93,7 @@ class MainWindow(QWidget):
 
         # Создание страниц и добавление их в стек
         self.books_page = BookPage(self.show_main_page)
-        self.movies_page = MoviePage(self.show_main_page)  # Экземпляр MoviePage
+        self.movies_page = MoviesPage(self.show_main_page)  # Экземпляр MoviePage
 
         self.stack.addWidget(self.books_page)
         self.stack.addWidget(self.movies_page)

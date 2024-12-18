@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor
+from db_connection import db_cursor  # Импортируем наш модуль для работы с БД
 
 
 class BookPage(QWidget):
@@ -60,7 +61,7 @@ class BookPage(QWidget):
 
         # Подсказка
         hint_label = QLabel(
-            "Click the check mark to mark what you have read or the cross to remove the book from the list")
+            "Click the book to mark as read/unread or press Delete to remove it from the list")
         hint_label.setWordWrap(True)
         hint_label.setAlignment(Qt.AlignCenter)
         hint_label.setFont(QFont("Lato", 24))
@@ -114,23 +115,35 @@ class BookPage(QWidget):
 
         self.book_list.itemClicked.connect(self.toggle_book_status)
 
+        # Загружаем книги из базы данных при запуске
+        self.load_books_from_db()
+
     def add_book(self):
         book_name = self.input_field.text().strip()
         if book_name:
             try:
-                # Создание элемента списка
-                item = QListWidgetItem(book_name)
-                item.setFont(QFont("Lato", 18))  # Устанавливаем шрифт размером 18
-                item.setForeground(QColor("#716A5C"))  # Устанавливаем цвет текста
-
-                # Добавление элемента в список
-                self.book_list.addItem(item)
-
-                # Очищаем поле ввода после добавления
+                with db_cursor() as cursor:
+                    cursor.execute("INSERT INTO Books (title, is_read) VALUES (%s, false);", (book_name,))
                 self.input_field.clear()
-
+                self.load_books_from_db()  # Обновляем список после добавления
             except Exception as e:
                 print(f"Error while adding book: {e}")
+
+    def load_books_from_db(self):
+        try:
+            self.book_list.clear()  # Очищаем список
+            with db_cursor() as cursor:
+                cursor.execute("SELECT id, title, is_read FROM Books;")
+                books = cursor.fetchall()
+                for book in books:
+                    item = QListWidgetItem(book['title'])
+                    item.setData(Qt.UserRole, book['id'])  # Привязываем ID книги к элементу
+                    item.setData(Qt.UserRole + 1, book['is_read'])  # Привязываем статус книги
+                    item.setFont(QFont("Lato", 18))
+                    item.setForeground(QColor("#A39B8B" if book['is_read'] else "#716A5C"))
+                    self.book_list.addItem(item)
+        except Exception as e:
+            print(f"Error while loading books: {e}")
 
     def on_title_click(self, event):
         """Переход на главную страницу."""
@@ -138,20 +151,26 @@ class BookPage(QWidget):
 
     def toggle_book_status(self, item: QListWidgetItem):
         """Переключить статус книги (прочитано/не прочитано)."""
-        if item.data(Qt.UserRole) is None:  # Если книга не прочитана
-            item.setForeground(QColor("#A39B8B"))  # Меняем цвет текста
-            item.setData(Qt.UserRole, True)  # Устанавливаем статус прочитано
-            item.setText(f"{item.text()}")
-        elif item.data(Qt.UserRole):
-            item.setForeground(QColor("#716A5C"))  # Меняем цвет текста
-            item.setData(Qt.UserRole, None)
-            item.setText(f"{item.text()}")
+        book_id = item.data(Qt.UserRole)
+        is_read = item.data(Qt.UserRole + 1)
+        try:
+            new_status = not is_read
+            with db_cursor() as cursor:
+                cursor.execute("UPDATE Books SET is_read = %s WHERE id = %s;", (new_status, book_id))
+            item.setData(Qt.UserRole + 1, new_status)
+            item.setForeground(QColor("#A39B8B" if new_status else "#716A5C"))
+        except Exception as e:
+            print(f"Error while toggling book status: {e}")
 
     def keyPressEvent(self, event):
         """Удаляет выбранный элемент при нажатии клавиши Delete."""
-        if event.key() == Qt.Key_Delete:  # Проверяем, была ли нажата клавиша Delete
+        if event.key() == Qt.Key_Delete:
             current_item = self.book_list.currentItem()
             if current_item:
-                row = self.book_list.row(current_item)
-                self.book_list.takeItem(row)
-#Furry was there
+                book_id = current_item.data(Qt.UserRole)
+                try:
+                    with db_cursor() as cursor:
+                        cursor.execute("DELETE FROM Books WHERE id = %s;", (book_id,))
+                    self.book_list.takeItem(self.book_list.row(current_item))
+                except Exception as e:
+                    print(f"Error while deleting book: {e}")
