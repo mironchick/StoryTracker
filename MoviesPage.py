@@ -19,7 +19,7 @@ class MoviesPage(QWidget):
         left_layout.setContentsMargins(30, 30, 15, 30)
 
         # Заголовок страницы
-        self.title_label = QLabel("MoviesTracker")
+        self.title_label = QLabel("StoryTracker")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setFont(QFont("Lato", 48, QFont.Bold))
         self.title_label.setStyleSheet("""
