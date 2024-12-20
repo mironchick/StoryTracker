@@ -7,6 +7,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from BookPage import BookPage
 from MoviesPage import MoviesPage  # Импортируем страницу фильмов
+from db_connection import db_cursor
 
 
 class MainWindow(QWidget):
