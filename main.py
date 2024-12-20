@@ -42,6 +42,7 @@ class MainWindow(QWidget):
 
         # Кнопка "See my books"
         see_books_button = QPushButton("See my books")
+        see_books_button.setObjectName("See my books")
         see_books_button.setFixedSize(752, 100)
         see_books_button.setFont(QFont("Lato", 28, QFont.Bold))
         see_books_button.setStyleSheet("""
