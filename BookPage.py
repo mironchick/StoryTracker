@@ -123,9 +123,9 @@ class BookPage(QWidget):
         if book_name:
             try:
                 with db_cursor() as cursor:
-                    cursor.execute("INSERT INTO Books (title, is_read) VALUES (%s, false);", (book_name,))
+                    cursor.execute("INSERT INTO Books (title, is_read) VALUES (?, ?);", (book_name, False))
                 self.input_field.clear()
-                self.load_books_from_db()  # Обновляем список после добавления
+                self.load_books_from_db()
             except Exception as e:
                 print(f"Error while adding book: {e}")
 
@@ -150,13 +150,12 @@ class BookPage(QWidget):
         self.switch_to_main_page()
 
     def toggle_book_status(self, item: QListWidgetItem):
-        """Переключить статус книги (прочитано/не прочитано)."""
         book_id = item.data(Qt.UserRole)
         is_read = item.data(Qt.UserRole + 1)
         try:
             new_status = not is_read
             with db_cursor() as cursor:
-                cursor.execute("UPDATE Books SET is_read = %s WHERE id = %s;", (new_status, book_id))
+                cursor.execute("UPDATE Books SET is_read = ? WHERE id = ?;", (new_status, book_id))
             item.setData(Qt.UserRole + 1, new_status)
             item.setForeground(QColor("#A39B8B" if new_status else "#716A5C"))
         except Exception as e:
@@ -170,7 +169,7 @@ class BookPage(QWidget):
                 book_id = current_item.data(Qt.UserRole)
                 try:
                     with db_cursor() as cursor:
-                        cursor.execute("DELETE FROM Books WHERE id = %s;", (book_id,))
+                        cursor.execute("DELETE FROM Books WHERE id = ?;", (book_id,))
                     self.book_list.takeItem(self.book_list.row(current_item))
                 except Exception as e:
                     print(f"Error while deleting book: {e}")
