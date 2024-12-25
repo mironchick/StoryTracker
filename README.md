@@ -11,4 +11,20 @@
 
 ## Установка:
 
-Установить программу Storytracker.exe, запустить. Настроить базу данных в PostgreSQL, создать таблицы Books и Movies
+Установить программу Storytracker.exe (если ругается антивирус, то разрешите приложение или отключите его), запустите и пользуйтесь. Приятного пользования!
+
+Если вы хотите использовать версию с PostgreSQL:
+Скачать папку проекта. Настроить базу данных в PostgreSQL, создать таблицы Books и Movies:
+CREATE TABLE Books (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE Movies (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    is_watched BOOLEAN DEFAULT FALSE
+);
+
+После поменяйте подключение к вашей БД в db_connection.py. Далее через PyInstaller создайте exe файл. Приятного пользования!
